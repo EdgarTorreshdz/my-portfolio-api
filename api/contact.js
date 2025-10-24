@@ -3,7 +3,9 @@ import nodemailer from "nodemailer";
 export default async function handler(req, res) {
   const allowedOrigins = [
     'https://edgartorres.dev',
-    'https://www.edgartorres.dev'
+    'https://www.edgartorres.dev',
+    'https://printmotion-hbxwvbnp.on-forge.com',
+    'https://printmotion.mx'
   ];
 
   const origin = req.headers.origin;
@@ -21,10 +23,12 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: 'Método no permitido' });
   }
 
-  const { name, email, message, website } = req.body;
+  const { name, email, message, website, source } = req.body;
 
   if (website) return res.status(400).json({ message: 'Posible spam detectado' });
   if (!name || !email || !message) return res.status(400).json({ message: 'Todos los campos son requeridos' });
+
+  const fromSite = source === 'PrintMotion' ? 'PrintMotion' : 'Portafolio Web';
 
   try {
     const transporter = nodemailer.createTransport({
@@ -36,9 +40,9 @@ export default async function handler(req, res) {
     });
 
     await transporter.sendMail({
-      from: `"Portafolio Web" <${process.env.MAIL_USER}>`,
+      from: `"${fromSite}" <${process.env.MAIL_USER}>`,
       to: process.env.MAIL_USER,
-      subject: `Nuevo mensaje de ${name}`,
+      subject: `Nuevo mensaje de ${name} (${fromSite})`,
       text: `De: ${name} <${email}>\n\n${message}`
     });
 
